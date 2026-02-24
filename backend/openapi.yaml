@@ -1,0 +1,1110 @@
+openapi: "3.0.3"
+info:
+  title: SurveyForge API
+  description: |
+    REST API for SurveyForge - a survey builder platform built with Laravel 12 + Sanctum.  
+    All endpoints return JSON. Protected routes require a `Bearer` token obtained via `/api/auth/login`.
+  version: "1.0.0"
+
+servers:
+  - url: http://localhost:8000/api
+    description: Local Docker development
+
+tags:
+  - name: Auth
+    description: Registration, login, logout
+  - name: Profile
+    description: Current-user profile management
+  - name: Surveys
+    description: Survey CRUD, publishing, favourites, duplication
+  - name: Questions
+    description: Question CRUD and reordering within a survey
+  - name: Collaborators
+    description: Survey collaboration management
+  - name: PublicSurvey
+    description: Public (unauthenticated) survey access and response submission
+  - name: Results
+    description: Survey results, individual responses, export
+  - name: Admin
+    description: Admin-only user and survey management
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: "Sanctum Token"
+
+  schemas:
+    # Enums
+    QuestionType:
+      type: string
+      enum: [SHORT_TEXT, LONG_TEXT, SINGLE_CHOICE, MULTI_CHOICE, NUMBER, FILE, RANKING, CODE]
+
+    SurveyStatus:
+      type: string
+      enum: [draft, published]
+
+    CollaboratorRole:
+      type: string
+      enum: [viewer, editor]
+
+    # Core resources
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        email:
+          type: string
+          format: email
+        is_admin:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    Survey:
+      type: object
+      properties:
+        id:
+          type: integer
+        owner_id:
+          type: integer
+        title:
+          type: string
+        description:
+          type: string
+          nullable: true
+        slug:
+          type: string
+          nullable: true
+        status:
+          $ref: "#/components/schemas/SurveyStatus"
+        is_public:
+          type: boolean
+        is_accepting_responses:
+          type: boolean
+        opens_at:
+          type: string
+          format: date-time
+          nullable: true
+        closes_at:
+          type: string
+          format: date-time
+          nullable: true
+        require_name:
+          type: boolean
+        require_email:
+          type: boolean
+        access_password:
+          type: string
+          nullable: true
+        time_limit:
+          type: integer
+          nullable: true
+          description: Time limit in seconds
+        theme_color:
+          type: string
+          nullable: true
+        banner_image:
+          type: string
+          nullable: true
+          description: Base-64 encoded image
+        show_responses_after_submit:
+          type: boolean
+        show_correct_after_submit:
+          type: boolean
+        one_question_per_page:
+          type: boolean
+        prevent_going_back:
+          type: boolean
+        is_favorite:
+          type: boolean
+          description: Whether the current user has favourited this survey
+        role:
+          type: string
+          nullable: true
+          description: "Collaboration role for the current user (null = owner)"
+        questions_count:
+          type: integer
+        responses_count:
+          type: integer
+        collaborators:
+          type: array
+          items:
+            $ref: "#/components/schemas/Collaborator"
+        questions:
+          type: array
+          items:
+            $ref: "#/components/schemas/Question"
+        owner:
+          $ref: "#/components/schemas/User"
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    Question:
+      type: object
+      properties:
+        id:
+          type: integer
+        survey_id:
+          type: integer
+        type:
+          $ref: "#/components/schemas/QuestionType"
+        text:
+          type: string
+        description:
+          type: string
+          nullable: true
+        banner_image:
+          type: string
+          nullable: true
+        options:
+          type: array
+          items:
+            type: string
+          nullable: true
+        required:
+          type: boolean
+        correct_answer:
+          type: string
+          nullable: true
+        position:
+          type: integer
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    Collaborator:
+      type: object
+      properties:
+        id:
+          type: integer
+        survey_id:
+          type: integer
+        user_id:
+          type: integer
+        role:
+          $ref: "#/components/schemas/CollaboratorRole"
+        user:
+          $ref: "#/components/schemas/User"
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    Response:
+      type: object
+      properties:
+        id:
+          type: integer
+        survey_id:
+          type: integer
+        respondent_name:
+          type: string
+          nullable: true
+        respondent_email:
+          type: string
+          nullable: true
+        answers:
+          type: array
+          items:
+            $ref: "#/components/schemas/Answer"
+        created_at:
+          type: string
+          format: date-time
+
+    Answer:
+      type: object
+      properties:
+        id:
+          type: integer
+        response_id:
+          type: integer
+        question_id:
+          type: integer
+        value:
+          description: JSON-encoded value (string, number, or array)
+        created_at:
+          type: string
+          format: date-time
+
+    # Results aggregation
+    SurveyResults:
+      type: object
+      properties:
+        survey:
+          $ref: "#/components/schemas/Survey"
+        total_responses:
+          type: integer
+        questions:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: integer
+              text:
+                type: string
+              type:
+                $ref: "#/components/schemas/QuestionType"
+              options:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    value:
+                      type: string
+                    count:
+                      type: integer
+
+    # Auth payloads
+    AuthResponse:
+      type: object
+      properties:
+        user:
+          $ref: "#/components/schemas/User"
+        token:
+          type: string
+
+    # Error
+    Error:
+      type: object
+      properties:
+        message:
+          type: string
+        errors:
+          type: object
+          additionalProperties:
+            type: array
+            items:
+              type: string
+
+paths:
+  # Auth
+  /auth/register:
+    post:
+      tags: [Auth]
+      summary: Register a new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name, email, password, password_confirmation]
+              properties:
+                name:
+                  type: string
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+                  minLength: 8
+                password_confirmation:
+                  type: string
+      responses:
+        "201":
+          description: User registered
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+        "422":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /auth/login:
+    post:
+      tags: [Auth]
+      summary: Authenticate and receive a token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+      responses:
+        "200":
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+        "401":
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /auth/logout:
+    post:
+      tags: [Auth]
+      summary: Revoke the current token
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: Logged out
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+
+  # Profile
+  /me:
+    get:
+      tags: [Profile]
+      summary: Get current user
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: Current user data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+    put:
+      tags: [Profile]
+      summary: Update profile (name, email)
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                email:
+                  type: string
+                  format: email
+      responses:
+        "200":
+          description: Updated user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "422":
+          description: Validation error
+    delete:
+      tags: [Profile]
+      summary: Delete own account
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [password]
+              properties:
+                password:
+                  type: string
+      responses:
+        "200":
+          description: Account deleted
+
+  /me/password:
+    put:
+      tags: [Profile]
+      summary: Change password
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [current_password, password, password_confirmation]
+              properties:
+                current_password:
+                  type: string
+                password:
+                  type: string
+                  minLength: 8
+                password_confirmation:
+                  type: string
+      responses:
+        "200":
+          description: Password changed
+        "422":
+          description: Validation error
+
+  # Surveys
+  /surveys:
+    get:
+      tags: [Surveys]
+      summary: List surveys (owned + collaborative)
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: Array of surveys
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Survey"
+    post:
+      tags: [Surveys]
+      summary: Create a new survey
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [title]
+              properties:
+                title:
+                  type: string
+                description:
+                  type: string
+      responses:
+        "201":
+          description: Created survey
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Survey"
+        "422":
+          description: Validation error
+
+  /surveys/{survey}:
+    parameters:
+      - name: survey
+        in: path
+        required: true
+        schema:
+          type: integer
+    get:
+      tags: [Surveys]
+      summary: Get a single survey with questions and collaborators
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: Survey detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Survey"
+        "403":
+          description: Forbidden
+        "404":
+          description: Not found
+    put:
+      tags: [Surveys]
+      summary: Update survey settings
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                description:
+                  type: string
+                is_public:
+                  type: boolean
+                is_accepting_responses:
+                  type: boolean
+                opens_at:
+                  type: string
+                  format: date-time
+                closes_at:
+                  type: string
+                  format: date-time
+                require_name:
+                  type: boolean
+                require_email:
+                  type: boolean
+                access_password:
+                  type: string
+                time_limit:
+                  type: integer
+                theme_color:
+                  type: string
+                banner_image:
+                  type: string
+                show_responses_after_submit:
+                  type: boolean
+                show_correct_after_submit:
+                  type: boolean
+                one_question_per_page:
+                  type: boolean
+                prevent_going_back:
+                  type: boolean
+      responses:
+        "200":
+          description: Updated survey
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Survey"
+    delete:
+      tags: [Surveys]
+      summary: Delete a survey (owner only)
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: Survey deleted
+
+  /surveys/{survey}/publish:
+    parameters:
+      - name: survey
+        in: path
+        required: true
+        schema:
+          type: integer
+    post:
+      tags: [Surveys]
+      summary: Toggle publish / unpublish
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: Updated survey with new status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Survey"
+
+  /surveys/{survey}/favorite:
+    parameters:
+      - name: survey
+        in: path
+        required: true
+        schema:
+          type: integer
+    post:
+      tags: [Surveys]
+      summary: Toggle favourite status
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: Favourite toggled
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  is_favorite:
+                    type: boolean
+
+  /surveys/{survey}/duplicate:
+    parameters:
+      - name: survey
+        in: path
+        required: true
+        schema:
+          type: integer
+    post:
+      tags: [Surveys]
+      summary: Duplicate a survey with all questions
+      security:
+        - BearerAuth: []
+      responses:
+        "201":
+          description: Duplicated survey
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Survey"
+
+  # Questions
+  /surveys/{survey}/questions:
+    parameters:
+      - name: survey
+        in: path
+        required: true
+        schema:
+          type: integer
+    post:
+      tags: [Questions]
+      summary: Add a question to a survey
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [type, text]
+              properties:
+                type:
+                  $ref: "#/components/schemas/QuestionType"
+                text:
+                  type: string
+                description:
+                  type: string
+                banner_image:
+                  type: string
+                options:
+                  type: array
+                  items:
+                    type: string
+                required:
+                  type: boolean
+                correct_answer:
+                  type: string
+                position:
+                  type: integer
+      responses:
+        "201":
+          description: Created question
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Question"
+
+  /surveys/{survey}/questions/reorder:
+    parameters:
+      - name: survey
+        in: path
+        required: true
+        schema:
+          type: integer
+    post:
+      tags: [Questions]
+      summary: Reorder questions within a survey
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [questions]
+              properties:
+                questions:
+                  type: array
+                  items:
+                    type: object
+                    required: [id, position]
+                    properties:
+                      id:
+                        type: integer
+                      position:
+                        type: integer
+      responses:
+        "200":
+          description: Reordered successfully
+
+  /questions/{question}:
+    parameters:
+      - name: question
+        in: path
+        required: true
+        schema:
+          type: integer
+    put:
+      tags: [Questions]
+      summary: Update a question
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                type:
+                  $ref: "#/components/schemas/QuestionType"
+                text:
+                  type: string
+                description:
+                  type: string
+                banner_image:
+                  type: string
+                options:
+                  type: array
+                  items:
+                    type: string
+                required:
+                  type: boolean
+                correct_answer:
+                  type: string
+                position:
+                  type: integer
+      responses:
+        "200":
+          description: Updated question
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Question"
+    delete:
+      tags: [Questions]
+      summary: Delete a question
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: Question deleted
+
+  # Collabolators
+  /surveys/{survey}/collaborators:
+    parameters:
+      - name: survey
+        in: path
+        required: true
+        schema:
+          type: integer
+    post:
+      tags: [Collaborators]
+      summary: Add a collaborator by email
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, role]
+              properties:
+                email:
+                  type: string
+                  format: email
+                role:
+                  $ref: "#/components/schemas/CollaboratorRole"
+      responses:
+        "201":
+          description: Collaborator added
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Collaborator"
+        "422":
+          description: Validation error
+
+  /surveys/{survey}/collaborators/{userId}:
+    parameters:
+      - name: survey
+        in: path
+        required: true
+        schema:
+          type: integer
+      - name: userId
+        in: path
+        required: true
+        schema:
+          type: integer
+    delete:
+      tags: [Collaborators]
+      summary: Remove a collaborator
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: Collaborator removed
+
+
+  # Public survey
+  /public/surveys/{slug}:
+    parameters:
+      - name: slug
+        in: path
+        required: true
+        schema:
+          type: string
+    get:
+      tags: [PublicSurvey]
+      summary: Get a published survey by slug (no auth)
+      responses:
+        "200":
+          description: Survey with questions
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Survey"
+        "404":
+          description: Not found or not published
+
+  /public/surveys/{slug}/responses:
+    parameters:
+      - name: slug
+        in: path
+        required: true
+        schema:
+          type: string
+    post:
+      tags: [PublicSurvey]
+      summary: Submit a response to a public survey
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [answers]
+              properties:
+                answers:
+                  type: array
+                  items:
+                    type: object
+                    required: [question_id, value]
+                    properties:
+                      question_id:
+                        type: integer
+                      value:
+                        description: String, number, or array depending on question type
+                password:
+                  type: string
+                  description: Required if survey has access_password
+                respondent_name:
+                  type: string
+                respondent_email:
+                  type: string
+                  format: email
+      responses:
+        "201":
+          description: Response submitted
+        "422":
+          description: Validation error
+
+  # Results and export
+  /surveys/{survey}/results:
+    parameters:
+      - name: survey
+        in: path
+        required: true
+        schema:
+          type: integer
+    get:
+      tags: [Results]
+      summary: Aggregated survey results
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: Results with question breakdowns
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SurveyResults"
+
+  /surveys/{survey}/responses:
+    parameters:
+      - name: survey
+        in: path
+        required: true
+        schema:
+          type: integer
+    get:
+      tags: [Results]
+      summary: List individual responses
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: Array of responses with answers
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Response"
+
+  /surveys/{survey}/responses/{response}:
+    parameters:
+      - name: survey
+        in: path
+        required: true
+        schema:
+          type: integer
+      - name: response
+        in: path
+        required: true
+        schema:
+          type: integer
+    delete:
+      tags: [Results]
+      summary: Delete a single response
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: Response deleted
+
+  /surveys/{survey}/export:
+    parameters:
+      - name: survey
+        in: path
+        required: true
+        schema:
+          type: integer
+    get:
+      tags: [Results]
+      summary: Export survey results
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: format
+          in: query
+          schema:
+            type: string
+            enum: [xlsx, csv, pdf]
+            default: xlsx
+      responses:
+        "200":
+          description: File download
+          content:
+            application/vnd.openxmlformats-officedocument.spreadsheetml.sheet: {}
+            text/csv: {}
+            application/pdf: {}
+
+
+  # Admin
+  /admin/users:
+    get:
+      tags: [Admin]
+      summary: List all users
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: Array of users with survey counts
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  allOf:
+                    - $ref: "#/components/schemas/User"
+                    - type: object
+                      properties:
+                        surveys_count:
+                          type: integer
+
+  /admin/users/{user}:
+    parameters:
+      - name: user
+        in: path
+        required: true
+        schema:
+          type: integer
+    put:
+      tags: [Admin]
+      summary: Update a user (name, email, is_admin, password)
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                email:
+                  type: string
+                  format: email
+                is_admin:
+                  type: boolean
+                password:
+                  type: string
+                  minLength: 8
+      responses:
+        "200":
+          description: Updated user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+    delete:
+      tags: [Admin]
+      summary: Delete a user
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: User deleted
+
+  /admin/surveys:
+    get:
+      tags: [Admin]
+      summary: List all surveys (admin view)
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: Array of surveys with owner info
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  allOf:
+                    - $ref: "#/components/schemas/Survey"
+                    - type: object
+                      properties:
+                        owner:
+                          $ref: "#/components/schemas/User"
+
+  /admin/surveys/{survey}:
+    parameters:
+      - name: survey
+        in: path
+        required: true
+        schema:
+          type: integer
+    delete:
+      tags: [Admin]
+      summary: Delete any survey (admin)
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: Survey deleted
