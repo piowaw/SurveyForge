@@ -32,18 +32,19 @@ services:
     container_name: surveyforge-api
     working_dir: /var/www
     environment:
-      APP_ENV: local
-      APP_DEBUG: "true"
+      APP_ENV: production
+      APP_DEBUG: "false"
       APP_KEY: base64:tZj83MZ3AIIJs6cEOGZuf1kAkLmDyc3f+rPr85QhaBU=
-      APP_URL: http://localhost:8000
+      APP_URL: https://surveyforge.piowaw.com
       DB_CONNECTION: pgsql
       DB_HOST: postgres
       DB_PORT: 5432
       DB_DATABASE: surveyforge
       DB_USERNAME: surveyforge
       DB_PASSWORD: secret
-      SANCTUM_STATEFUL_DOMAINS: localhost:5173
-      SESSION_DOMAIN: localhost
+      SANCTUM_STATEFUL_DOMAINS: surveyforge.piowaw.com
+      SESSION_DOMAIN: .piowaw.com
+      CORS_ALLOWED_ORIGINS: "https://surveyforge.piowaw.com,http://localhost:5173"
       L5_SWAGGER_GENERATE_ALWAYS: "false"
     depends_on:
       postgres:
@@ -63,7 +64,7 @@ services:
     container_name: surveyforge-frontend
     working_dir: /app
     environment:
-      VITE_API_URL: http://localhost:8000/api
+      VITE_API_URL: https://surveyforge.piowaw.com/api
     ports:
       - "5173:5173"
     command: npm run dev -- --host 0.0.0.0
