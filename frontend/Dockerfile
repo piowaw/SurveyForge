@@ -8,4 +8,9 @@ RUN npm install
 
 COPY . .
 
-EXPOSE 5173
+ARG VITE_API_URL=http://localhost:8000/api
+ENV VITE_API_URL=$VITE_API_URL
+
+RUN npm run build
+
+EXPOSE 4173

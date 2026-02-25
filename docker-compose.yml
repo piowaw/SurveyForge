@@ -61,13 +61,13 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
+      args:
+        VITE_API_URL: https://surveyforge.piowaw.com/api
     container_name: surveyforge-frontend
     working_dir: /app
-    environment:
-      VITE_API_URL: https://surveyforge.piowaw.com/api
     ports:
-      - "5173:5173"
-    command: npm run dev -- --host 0.0.0.0
+      - "5173:4173"
+    command: npm run preview -- --host 0.0.0.0 --port 4173
     depends_on:
       - api
 
