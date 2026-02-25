@@ -14,6 +14,7 @@ import SurveyPage from '@/pages/SurveyPage';
 import PublicSurveyPage from '@/pages/PublicSurveyPage';
 import AdminPanelPage from '@/pages/AdminPanelPage';
 import NotFoundPage from '@/pages/NotFoundPage';
+import HomePage from '@/pages/HomePage';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -32,6 +33,9 @@ export default function App() {
       <BrowserRouter>
         <AuthProvider>
           <Routes>
+            {/* Landing page */}
+            <Route path="/" element={<HomePage />} />
+
             {/* Auth routes */}
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />

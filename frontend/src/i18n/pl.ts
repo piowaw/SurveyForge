@@ -78,6 +78,7 @@ const pl: TranslationKeys = {
 
   /* Page titles */
   pageTitles: {
+    home: 'Strona główna',
     login: 'Logowanie',
     register: 'Rejestracja',
     dashboard: 'Panel główny',
@@ -86,6 +87,48 @@ const pl: TranslationKeys = {
     survey: 'Ankieta',
     publicSurvey: 'Ankieta',
     notFound: 'Nie znaleziono strony',
+  },
+
+  /* ─── Home / Landing Page ─── */
+  home: {
+    pageTitle: 'Strona główna',
+    badge: 'Platforma ankietowa open-source',
+    heroTitle: 'Twórz piękne ankiety w kilka minut',
+    heroSubtitle: 'Twórz, udostępniaj i analizuj ankiety dzięki potężnemu kreatorowi drag-and-drop, współpracy w czasie rzeczywistym, odpowiedziom z limitem czasu i szczegółowej analityce — wszystko w jednym miejscu.',
+    getStarted: 'Zacznij za darmo',
+    signIn: 'Zaloguj się',
+    signUp: 'Zarejestruj się',
+    goToDashboard: 'Przejdź do panelu',
+    featuresTitle: 'Wszystko czego potrzebujesz',
+    featuresSubtitle: 'Kompletny zestaw narzędzi ankietowych — od budowania pytań po eksport wyników.',
+    techTitle: 'Nowoczesny stos technologiczny',
+    techSubtitle: 'Produkcyjny stack, któremu możesz zaufać.',
+    features: {
+      questionTypes: '8 typów pytań',
+      questionTypesDesc: 'Krótki tekst, długi tekst, jednokrotny i wielokrotny wybór, liczba, plik, ranking i kod.',
+      analytics: 'Wyniki i wykresy',
+      analyticsDesc: 'Zagregowane statystyki z wykresami słupkowymi i widokiem szczegółów odpowiedzi.',
+      collaboration: 'Współpraca w czasie rzeczywistym',
+      collaborationDesc: 'Zapraszaj edytorów i widzów po emailu z uprawnieniami opartymi na rolach.',
+      publicSharing: 'Publiczne udostępnianie',
+      publicSharingDesc: 'Publikuj ankiety z unikalnym linkiem — respondenci nie muszą się logować.',
+      timedSurveys: 'Ankiety z limitem czasu',
+      timedSurveysDesc: 'Ustaw limity czasowe i okna harmonogramu (otwiera się / zamyka się).',
+      passwordProtection: 'Ochrona hasłem',
+      passwordProtectionDesc: 'Ogranicz dostęp do ankiety opcjonalną bramką hasła.',
+      codeQuestions: 'Edytor kodu',
+      codeQuestionsDesc: 'Pole kodu z CodeMirror do quizów programistycznych i ocen.',
+      dragAndDrop: 'Drag & Drop',
+      dragAndDropDesc: 'Zmieniaj kolejność pytań i opcji rankingowych intuicyjnym przeciąganiem.',
+      export: 'Eksport CSV i Excel',
+      exportDesc: 'Pobierz odpowiedzi jako CSV, XLSX lub JSON jednym kliknięciem.',
+      adminPanel: 'Panel admina',
+      adminPanelDesc: 'Zarządzaj wszystkimi użytkownikami i ankietami z dedykowanego panelu administracyjnego.',
+      theming: 'Motywy',
+      themingDesc: 'Ustaw kolor marki i baner dla każdej ankiety.',
+      displayModes: 'Tryby wyświetlania',
+      displayModesDesc: 'Pokaż wszystkie pytania, stronicowane grupy lub jedno pytanie na stronę.',
+    },
   },
 
   /* ─── App Layout / Navigation ─── */

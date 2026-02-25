@@ -76,6 +76,7 @@ const en = {
 
   /* Page titles */
   pageTitles: {
+    home: 'Home',
     login: 'Log in',
     register: 'Sign up',
     dashboard: 'Dashboard',
@@ -84,6 +85,48 @@ const en = {
     survey: 'Survey',
     publicSurvey: 'Survey',
     notFound: 'Page Not Found',
+  },
+
+  /* ─── Home / Landing Page ─── */
+  home: {
+    pageTitle: 'Home',
+    badge: 'Open-source survey platform',
+    heroTitle: 'Build beautiful surveys in minutes',
+    heroSubtitle: 'Create, share and analyse surveys with a powerful drag-and-drop builder, real-time collaboration, timed responses, and detailed analytics — all in one place.',
+    getStarted: 'Get Started Free',
+    signIn: 'Sign In',
+    signUp: 'Sign Up',
+    goToDashboard: 'Go to Dashboard',
+    featuresTitle: 'Everything you need',
+    featuresSubtitle: 'A full-featured survey toolkit — from question building to results export.',
+    techTitle: 'Built with modern tech',
+    techSubtitle: 'Production-grade stack you can trust.',
+    features: {
+      questionTypes: '8 Question Types',
+      questionTypesDesc: 'Short text, long text, single & multiple choice, number, file upload, ranking and code.',
+      analytics: 'Results & Charts',
+      analyticsDesc: 'Aggregated statistics with bar charts and per-response detail view.',
+      collaboration: 'Real-time Collaboration',
+      collaborationDesc: 'Invite editors and viewers by email with role-based permissions.',
+      publicSharing: 'Public Sharing',
+      publicSharingDesc: 'Publish surveys with a unique link — no login required for respondents.',
+      timedSurveys: 'Timed Surveys',
+      timedSurveysDesc: 'Set time limits and scheduling windows (opens at / closes at).',
+      passwordProtection: 'Password Protection',
+      passwordProtectionDesc: 'Restrict access to your survey with an optional password gate.',
+      codeQuestions: 'Code Editor',
+      codeQuestionsDesc: 'CodeMirror-powered code input for programming quizzes and assessments.',
+      dragAndDrop: 'Drag & Drop',
+      dragAndDropDesc: 'Reorder questions and ranking options with intuitive drag-and-drop.',
+      export: 'CSV & Excel Export',
+      exportDesc: 'Download responses as CSV, XLSX or JSON with one click.',
+      adminPanel: 'Admin Panel',
+      adminPanelDesc: 'Manage all users and surveys from a dedicated administration dashboard.',
+      theming: 'Custom Theming',
+      themingDesc: 'Set a brand colour and banner image for each survey.',
+      displayModes: 'Display Modes',
+      displayModesDesc: 'Show all questions, paginated groups, or one question per page.',
+    },
   },
 
   /* ─── App Layout / Navigation ─── */
